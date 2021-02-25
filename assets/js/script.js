@@ -44,6 +44,58 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+// make tasks dragable
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+  helper: "clone",
+  activate: function(event) {
+    console.log("activate", this);
+  },
+  deactivate: function(event) {
+    console.log("deactivate", this);
+  },
+  over: function(event) {
+    console.log("over", event.target);
+  },
+  out: function(event) {
+    console.log("out", event.target);
+  },
+  update: function(event) {
+    let tempArr = [];
+    $(this).children().each(function() {
+      let text = $(this).find("p").text().trim();
+      let date = $(this).find("span").text().trim();
+      tempArr.push({
+        text: text,
+        date: date
+      });
+    });
+
+    let arrName = $(this).attr("id").replace("list-", "");
+    tasks[arrName] = tempArr;
+    saveTasks();
+    console.log(tasks);
+  }
+});
+
+// tasks removed if dragged to trash element
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop: function(event, ui) {
+    console.log("drop");
+    ui.draggable.remove();
+  },
+  over: function(event, ui) {
+    console.log("over");
+  },
+  out: function(event, ui) {
+    console.log("out");
+  }
+});
+
 // converts p elements in tasks to text areas on click with focus
 $(".list-group").on("click", "p", function () {
   let text = $(this).text().trim();
@@ -117,7 +169,7 @@ $("#task-form-modal").on("shown.bs.modal", function() {
   $("#modalTaskDescription").trigger("focus");
 });
 
-// save button in modal was clicked
+// save button if modal was clicked
 $("#task-form-modal .btn-primary").click(function() {
   // get form values
   var taskText = $("#modalTaskDescription").val();
